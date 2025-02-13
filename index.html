@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тетрис</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="game-wrapper">
+            <div class="game-info">
+                <div class="next-piece">
+                    <h3 data-translate="nextFigure">Next Figure:</h3>
+                    <canvas id="nextPiece"></canvas>
+                </div>
+                <div class="score-info">
+                    <h3><span data-translate="score">Score:</span> <span id="score">0</span></h3>
+                    <h3><span data-translate="level">Level:</span> <span id="level">0</span></h3>
+                    <h3><span data-translate="lines">Lines:</span> <span id="lines">0</span></h3>
+                </div>
+            </div>
+            
+            <div class="game-board">
+                <div class="control-panel">
+                    <button class="control-button" id="restartButton">
+                        <i class="fas fa-redo"></i>
+                        <span class="tooltip" data-translate="restart">Restart</span>
+                    </button>
+                    <button class="control-button" id="pauseButton">
+                        <i class="fas fa-play"></i>
+                        <span class="tooltip" data-translate="pausePlay">Play/Pause</span>
+                    </button>
+                    <button class="control-button" id="achievementsButton">
+                        <i class="fas fa-trophy"></i>
+                        <span class="tooltip" data-translate="achievements">Achievements</span>
+                    </button>
+                    <button class="control-button" id="highscoresButton">
+                        <i class="fas fa-medal"></i>
+                        <span class="tooltip" data-translate="highscores">High Scores</span>
+                    </button>
+                    <button class="control-button" id="settingsButton">
+                        <i class="fas fa-cog"></i>
+                        <span class="tooltip" data-translate="settings">Settings</span>
+                    </button>
+                </div>
+                <div class="game-container">
+                    <canvas id="tetris" width="630" height="900" style="background-color: rgba(0, 0, 0, 0.8);"></canvas>
+                    <div class="game-overlay">
+                        <div id="gameOver" class="game-over hidden" data-translate="gameOver">Игра окончена</div>
+                        <button id="startButton" class="start-button hidden" data-translate="start">Старт</button>
+                        <div id="pauseMessage" class="game-message hidden" data-translate="pause">Пауза</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-info-right">
+                <div class="controls-info">
+                    <h3 data-translate="controls">Controls</h3>
+                    <table class="controls-table">
+                        <tr>
+                            <td>↑ / W / Ц</td>
+                            <td data-translate="rotate">Поворот</td>
+                        </tr>
+                        <tr>
+                            <td>← / A / Ф</td>
+                            <td data-translate="left">Влево</td>
+                        </tr>
+                        <tr>
+                            <td>→ / D / В</td>
+                            <td data-translate="right">Вправо</td>
+                        </tr>
+                        <tr>
+                            <td>↓ / S / Ы</td>
+                            <td data-translate="speedUp">Ускорить</td>
+                        </tr>
+                        <tr>
+                            <td>Space</td>
+                            <td data-translate="pauseKey">Пауза / Продолжить</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="achievementsModal" class="modal">
+        <div class="modal-content">
+            <h2 data-translate="achievements">Achievements</h2>
+            <div id="achievementsList"></div>
+        </div>
+    </div>
+
+    <div id="highscoresModal" class="modal">
+        <div class="modal-content">
+            <h2>Рекорды</h2>
+            <div class="highscores-header">
+                <div class="rank-header">Место</div>
+                <div class="score-header">Очки</div>
+                <div class="details-header">Детали</div>
+            </div>
+            <div id="highScoresList"></div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2 data-translate="settings">Настройки</h2>
+            <div class="settings-content">
+                <div class="volume-control">
+                    <label for="volume" data-translate="volume">Громкость</label>
+                    <input type="range" id="volume" min="0" max="100" value="50">
+                </div>
+                <div class="theme-control">
+                    <label for="theme" data-translate="theme">Тема</label>
+                    <select id="theme">
+                        <option value="classic">Classic</option>
+                        <option value="neon">Neon</option>
+                        <option value="retro">White</option>
+                        <option value="nyancat">Nyan Cat</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="constants.js"></script>
+    <script src="themes.js"></script>
+    <script src="sounds.js"></script>
+    <script src="achievements.js"></script>
+    <script src="game.js"></script>
+    <script src="translations.js"></script>
+    <script>
+        let game; // Глобальная переменная для доступа к игре
+        window.addEventListener('load', () => {
+            game = new TetrisGame();
+        });
+    </script>
+</body>
+</html> 
