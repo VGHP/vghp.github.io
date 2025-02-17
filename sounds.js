@@ -7,27 +7,42 @@ class SoundManager {
         this.currentMusicTime = 0;
         this.gameOverSound = null;
         this.currentTheme = null;
+        this.userInteracted = false;
         
-        // Определяем звуковые файлы напрямую
-        this.soundFiles = {
-            rotate: 'neon-rotate.mp3',
-            drop: 'neon-drop.mp3',
-            clear: 'neon-clear.mp3',
-            gameOver: '8bit-negative-beeps.mp3',  // Новый звук для Game Over
-            gameStart: 'neon-start.mp3'
+        // Добавляем слушатель для первого взаимодействия
+        const handleFirstInteraction = () => {
+            this.userInteracted = true;
+            // Предзагружаем все звуки после первого взаимодействия
+            this.init();
+            // Удаляем слушатели после первого взаимодействия
+            document.removeEventListener('click', handleFirstInteraction);
+            document.removeEventListener('keydown', handleFirstInteraction);
         };
-        
-        this.init();
+
+        // Добавляем слушатели для клика и нажатия клавиш
+        document.addEventListener('click', handleFirstInteraction);
+        document.addEventListener('keydown', handleFirstInteraction);
     }
 
     init() {
         // Загружаем все звуки
+        this.soundFiles = {
+            rotate: 'neon-rotate.mp3',
+            drop: 'neon-drop.mp3',
+            clear: 'neon-clear.mp3',
+            gameOver: '8bit-negative-beeps.mp3',
+            gameStart: 'neon-start.mp3'
+        };
+        
+        // Создаем и загружаем звуки
         Object.entries(this.soundFiles).forEach(([key, file]) => {
-            this.sounds[key] = new Audio(`sounds/${file}`);
+            const audio = new Audio(`sounds/${file}`);
+            audio.load(); // Явно загружаем звук
+            this.sounds[key] = audio;
             this.sounds[key].volume = this.volume;
         });
 
-        // Загружаем фоновую музыку для каждой темы
+        // Загружаем фоновую музыку
         this.backgroundMusic = {
             classic: new Audio('sounds/8bit-simple-beginnings.mp3'),
             neon: new Audio('sounds/8bit-ten-feet-under.mp3'),
@@ -39,6 +54,7 @@ class SoundManager {
         Object.values(this.backgroundMusic).forEach(music => {
             music.loop = true;
             music.volume = this.volume;
+            music.load(); // Явно загружаем музыку
         });
 
         // Настраиваем звук Game Over
@@ -71,19 +87,14 @@ class SoundManager {
     }
 
     playBackgroundMusic(theme, resumeFromPause = false) {
-        // Если тема изменилась, начинаем с начала
-        if (this.currentTheme !== theme) {
-            this.currentMusicTime = 0;
-            this.currentTheme = theme;
-        }
-        
-        // Сначала останавливаем все фоновые треки
+        if (!this.userInteracted) return;
+
+        // Останавливаем текущую музыку
         this.stopBackgroundMusic();
         
         // Запускаем трек для текущей темы
         const music = this.backgroundMusic[theme];
         if (music) {
-            // Если возобновляем после паузы, используем сохраненную позицию
             music.currentTime = resumeFromPause ? this.currentMusicTime : 0;
             music.play().catch(error => {
                 console.warn(`Не удалось воспроизвести фоновую музыку для темы ${theme}:`, error);
@@ -106,21 +117,37 @@ class SoundManager {
         this.setVolume(this.volume);
     }
 
+    preloadAfterInteraction() {
+        const loadSounds = () => {
+            // Загружаем все звуки после первого взаимодействия
+            Object.entries(this.soundFiles).forEach(([key, file]) => {
+                const audio = new Audio(`sounds/${file}`);
+                audio.load(); // Явно загружаем звук
+                this.sounds[key] = audio;
+                this.sounds[key].volume = this.volume;
+            });
+            
+            // Удаляем слушатель после загрузки
+            document.removeEventListener('click', loadSounds);
+            document.removeEventListener('touchstart', loadSounds);
+        };
+
+        // Добавляем слушатели для загрузки звуков
+        document.addEventListener('click', loadSounds);
+        document.addEventListener('touchstart', loadSounds);
+    }
+
     play(soundName) {
-        if (this.sounds[soundName]) {
-            try {
-                const sound = this.sounds[soundName].cloneNode();
-                sound.volume = this.isMuted ? 0 : this.volume;
-                
-                sound.play().catch(error => {
-                    console.warn(`Не удалось воспроизвести звук ${soundName}:`, error);
-                });
-            } catch (error) {
-                console.warn(`Ошибка при воспроизведении звука ${soundName}:`, error);
-            }
-        } else {
-            console.warn(`Звук ${soundName} не найден`);
+        if (!this.sounds[soundName] || !this.userInteracted) return;
+        
+        const sound = this.sounds[soundName].cloneNode();
+        sound.volume = this.volume;
+        
+        if (soundName === 'gameStart' && this.userInteracted) {
+            this.playBackgroundMusic(this.currentTheme || 'neon');
         }
+        
+        sound.play().catch(() => {});
     }
 
     playGameOverSound() {

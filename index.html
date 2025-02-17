@@ -2,7 +2,9 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Тетрис</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -45,8 +47,32 @@
                         <span class="tooltip" data-translate="settings">Settings</span>
                     </button>
                 </div>
+                <div class="mobile-info">
+                    <div class="mobile-stats">
+                        <h3>Очки: <span id="mobileScore">0</span></h3>
+                        <h3>Уровень: <span id="mobileLevel">0</span></h3>
+                        <h3>Линии: <span id="mobileLines">0</span></h3>
+                    </div>
+                    <div class="mobile-next">
+                        <canvas id="mobileNextPiece"></canvas>
+                    </div>
+                </div>
                 <div class="game-container">
                     <canvas id="tetris" width="630" height="900" style="background-color: rgba(0, 0, 0, 0.8);"></canvas>
+                    <div class="mobile-controls">
+                        <button class="mobile-button" id="mobileLeft">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <button class="mobile-button" id="mobileRotate">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                        <button class="mobile-button" id="mobileDown">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button class="mobile-button" id="mobileRight">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
                     <div class="game-overlay">
                         <div id="gameOver" class="game-over hidden" data-translate="gameOver">Игра окончена</div>
                         <button id="startButton" class="start-button hidden" data-translate="start">Старт</button>

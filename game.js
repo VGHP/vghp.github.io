@@ -58,6 +58,8 @@ class TetrisGame {
         // Устанавливаем начальное значение фона
         const initialVolume = volumeSlider.value;
         volumeSlider.style.background = `linear-gradient(to right, #ff4b4b 0%, #ff4b4b ${initialVolume}%, rgba(0, 0, 0, 0.3) ${initialVolume}%, rgba(0, 0, 0, 0.3) 100%)`;
+
+        this.initMobileControls(); // Добавляем инициализацию мобильного управления
     }
 
     reset() {
@@ -793,6 +795,9 @@ class TetrisGame {
             this.gameOver = true;
             this.showGameOver();
             this.saveHighScore();
+            // Добавляем генерацию события gameOver
+            const gameOverEvent = new Event('gameOver');
+            document.dispatchEvent(gameOverEvent);
         }
     }
 
@@ -847,13 +852,19 @@ class TetrisGame {
         if (this.gameOver) return;
         
         this.isPaused = !this.isPaused;
+        
+        console.log('Toggling pause, isPaused:', this.isPaused); // Лог состояния паузы
+        
+        // Генерируем события для паузы
+        const pauseEvent = new Event(this.isPaused ? 'gamePaused' : 'gameResumed');
+        document.dispatchEvent(pauseEvent);
+        console.log('Dispatched event:', this.isPaused ? 'gamePaused' : 'gameResumed'); // Лог отправки события
+        
         if (!this.isPaused) {
             this.lastTime = performance.now();
             this.update();
-            // Возобновляем музыку с того же места
             this.soundManager.playBackgroundMusic(this.themeManager.currentTheme, true);
         } else {
-            // Останавливаем музыку при паузе
             this.soundManager.stopBackgroundMusic();
         }
         
@@ -1039,6 +1050,58 @@ class TetrisGame {
             this.soundManager.play('levelUp');
         }
     }
+
+    initMobileControls() {
+        // Обработчики для мобильных кнопок
+        const mobileButtons = {
+            mobileLeft: () => this.movePiece(-1),
+            mobileRight: () => this.movePiece(1),
+            mobileDown: () => {
+                this.dropPiece();
+                this.speedDropCount++;
+            },
+            mobileRotate: () => {
+                if (this.rotate(this.currentPiece, 1)) {
+                    this.soundManager.play('rotate');
+                    this.rotationCount++;
+                }
+            }
+        };
+
+        // Добавляем обработчики для касаний
+        Object.entries(mobileButtons).forEach(([id, handler]) => {
+            const button = document.getElementById(id);
+            if (button) {
+                // Обработка касания
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault(); // Предотвращаем скролл
+                    if (!this.gameOver && !this.isPaused) {
+                        handler();
+                    }
+                });
+
+                // Для кнопки "вниз" добавляем повторение действия при удержании
+                if (id === 'mobileDown') {
+                    let intervalId = null;
+                    
+                    button.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        if (!this.gameOver && !this.isPaused) {
+                            intervalId = setInterval(() => handler(), 50);
+                        }
+                    });
+
+                    button.addEventListener('touchend', () => {
+                        if (intervalId) {
+                            clearInterval(intervalId);
+                            intervalId = null;
+                            this.speedDropCount = 0;
+                        }
+                    });
+                }
+            }
+        });
+    }
 }
 
 class LanguageManager {
@@ -1080,3 +1143,54 @@ const TRANSLATIONS = {
     speedUp: "Ускорить",
     pauseKey: "Пауза / Продолжить"
 };
+
+function resizeCanvas() {
+    if (window.innerWidth <= 768) {
+        const canvas = document.getElementById('tetris');
+        
+        // Фиксированные размеры для мобильной версии
+        const cellSize = GAME_CONFIG.MOBILE.BLOCK_SIZE;
+        const boardWidth = GAME_CONFIG.MOBILE.BOARD_WIDTH * cellSize;
+        const boardHeight = GAME_CONFIG.MOBILE.BOARD_HEIGHT * cellSize;
+
+        // Устанавливаем размеры canvas
+        canvas.width = boardWidth;
+        canvas.height = boardHeight;
+
+        // Стили для canvas
+        canvas.style.width = boardWidth + 'px';
+        canvas.style.height = boardHeight + 'px';
+        canvas.style.display = 'block';
+        canvas.style.padding = '0';
+        canvas.style.border = `${GAME_CONFIG.MOBILE.BORDER}px solid #333`;
+        
+        // Убираем все отступы и устанавливаем только нужные смещения
+        canvas.style.margin = '0';
+        canvas.style.marginLeft = GAME_CONFIG.MOBILE.OFFSET_X + 'px';
+        canvas.style.marginTop = GAME_CONFIG.MOBILE.OFFSET_Y + 'px';
+
+        // Обновляем размер canvas для следующей фигуры
+        const nextPieceCanvas = document.getElementById('nextPiece');
+        if (nextPieceCanvas) {
+            const nextPieceSize = cellSize * 3;
+            nextPieceCanvas.width = nextPieceSize;
+            nextPieceCanvas.height = nextPieceSize;
+        }
+    }
+}
+
+// Обработчики событий
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(resizeCanvas, 100);
+});
+
+window.addEventListener('orientationchange', () => {
+    setTimeout(resizeCanvas, 200);
+});
+
+// Добавляем обработчик для изменения высоты окна (скрытие адресной строки)
+window.addEventListener('visualViewport', resizeCanvas);
+
+// Инициализация
+window.addEventListener('load', resizeCanvas);

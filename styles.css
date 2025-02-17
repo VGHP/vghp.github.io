@@ -8,6 +8,9 @@
     --text-secondary: #a0aec0;
     --border-color: rgba(255, 255, 255, 0.1);
     --shadow-color: rgba(0, 0, 0, 0.3);
+    --board-width: 14;  /* Используем наши размеры поля */
+    --board-height: 20;
+    --panel-height: 40px;
 }
 
 body {
@@ -579,7 +582,7 @@ input[type="range"]::-moz-range-thumb:hover {
     border-radius: 10px;
     box-shadow: 0 4px 6px var(--shadow-color);
     width: 300px;
-    margin: 0;
+    margin: 0 0 0 0px; /* Отступ слева 20px уже есть */
 }
 
 /* Обновляем стили для левой панели */
@@ -592,7 +595,7 @@ input[type="range"]::-moz-range-thumb:hover {
     border-radius: 10px;
     box-shadow: 0 4px 6px var(--shadow-color);
     width: 300px;
-    margin: 0;
+    margin: 0 20px 0 -20px; /* Добавляем отступ справа 20px */
 }
 
 /* Обновляем стили для таблицы управления */
@@ -634,4 +637,305 @@ h2, h3 {
 .details-header {
     flex-grow: 1;
     padding: 5px;
-} 
+}
+
+/* Мобильные элементы по умолчанию скрыты */
+.mobile-info,
+.mobile-stats,
+.mobile-next,
+.mobile-controls {
+    display: none;
+}
+
+/* Мобильная версия - полностью отдельные стили */
+@media (max-width: 768px) {
+    /* Сброс стилей */
+    body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+    }
+
+    .container {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Игровое поле */
+    .game-board {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        right: 0;
+        bottom: 40px;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #000;
+    }
+
+    #tetris {
+        position: relative; /* Для абсолютного позиционирования внутри canvas */
+    }
+
+    #tetris {
+        display: block;
+        margin: 0 auto;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: calc(100vh - 130px);
+    }
+
+    /* Панели */
+    .control-panel, .mobile-info {
+        position: fixed;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        margin: 0;
+        padding: 0;
+        background: #000;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 100;
+    }
+
+    .control-panel {
+        top: 0;
+    }
+
+    .mobile-info {
+        top: 40px;
+    }
+
+    .mobile-stats {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+        color: white;
+        font-size: 14px;
+    }
+
+    /* Информационная панель */
+    .mobile-info {
+        position: fixed;
+        top: 40px;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        background: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+    }
+
+    .mobile-stats {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+        padding: 0 10px;
+        color: white;
+        font-size: 14px;
+    }
+
+    /* Контейнер для следующей фигуры */
+    .game-container {
+        position: relative; /* Для абсолютного позиционирования дочерних элементов */
+    }
+
+    .next-piece {
+        position: absolute;
+        top: 97px;
+        right: 10px;
+        z-index: 102;
+        width: 45px;
+        pointer-events: none;
+        padding: 0;
+        background: transparent;
+    }
+
+    /* Заголовок "Следующая фигура" */
+    .next-piece h3 {
+        color: white;
+        background: transparent !important;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        font-size: 7px;
+        line-height: 1.2;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    /* Окно для следующей фигуры */
+    #nextPiece {
+        display: block;
+        margin-top: 2px;
+        width: 45px;
+        height: 45px;
+        border: 1px solid white;
+        border-radius: 0;
+        box-sizing: border-box;
+        background: rgba(12, 12, 12, 0.7);
+    }
+
+    /* Стили для темы White с повышенной специфичностью */
+    .game-container.theme-retro .next-piece h3,
+    .theme-retro .game-container .next-piece h3 {
+        color: #000 !important;
+    }
+
+    .game-container.theme-retro #nextPiece,
+    .theme-retro .game-container #nextPiece {
+        border: 2px solid #444 !important;
+    }
+
+    /* Переопределение цвета для темы White */
+    .theme-nyancat #tetris + .next-piece h3 {
+        display: none;
+    }
+
+    /* Переопределение цвета для темы White */
+    .theme-nyancat #tetris + .next-piece h3 {
+        color: #000;
+    }
+
+    /* Classic и Neon используют базовый белый контур */
+
+    /* Панель управления фигурами */
+    .mobile-controls {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        background: #000;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 100;
+    }
+
+    .mobile-button {
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(145deg, #ff4b4b, #c41e3a);
+        border-radius: 8px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        margin: 0 2px;
+    }
+
+    /* Общий контейнер для кнопок */
+    .mobile-game-controls {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        width: calc(8 * 24.14px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: auto;
+    }
+
+    /* Общие стили для обеих кнопок */
+    .mobile-start-button,
+    .mobile-pause-button {
+        width: 100%;
+        height: calc(2 * 24.14px);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    /* Отдельные стили для каждой кнопки */
+    .mobile-start-button {
+        background: linear-gradient(145deg, #ff4b4b, #c41e3a);
+    }
+
+    /* Стиль только для кнопки Пауза */
+    .mobile-pause-button {
+        background: linear-gradient(145deg, #2c3e50, #1a1a1a);
+    }
+
+    /* Скрытие кнопок */
+    .mobile-start-button.hidden,
+    .mobile-pause-button.hidden {
+        display: none !important;
+    }
+
+    /* Скрываем десктопные кнопки */
+    .start-button,
+    .pause-button,
+    #pauseMessage {
+        display: none !important;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    /* Стиль для надписи Game Over в мобильной версии */
+    #gameOver {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        width: 100%;
+        max-width: calc(8 * 24.14px);
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #e74c3c;
+        font-size: 20px;
+        font-weight: bold;
+        text-transform: uppercase;
+        border-radius: 8px;
+        text-align: center;
+        padding: 15px 0;
+        margin: 0;
+    }
+
+    /* Модальные окна */
+    .modal {
+        z-index: 10000; /* Увеличиваем z-index модальных окон */
+    }
+
+    /* Общий контейнер для кнопок */
+    .mobile-game-controls {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999; /* Меньше, чем у модальных окон */
+        width: calc(8 * 24.14px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: auto;
+    }
+}
+
+/* Удаляем все дополнительные медиа-запросы для разных размеров экранов */
