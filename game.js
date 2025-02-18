@@ -15,6 +15,10 @@ class TetrisGame {
         this.gameOver = true;
         this.pieceTrail = [];
         this.maxTrailLength = 3;
+        
+        // Сохраняем ссылку на игру в canvas
+        this.canvas.tetrisGame = this;
+        
         this.init();
         this.updateControlButtons();
     }
@@ -36,6 +40,7 @@ class TetrisGame {
         this.reset();
         this.loadHighScores();
         this.initControlButtons();
+        this.updateStats();
 
         const startButton = document.getElementById('startButton');
         if (startButton) {
@@ -82,6 +87,9 @@ class TetrisGame {
         this.gameStartTime = Date.now();
         this.pieceTrail = [];
         this.maxTrailLength = 3;
+        
+        // Обновляем отображение статистики при сбросе игры
+        this.updateStats();
     }
 
     getRandomPiece() {
@@ -607,7 +615,6 @@ class TetrisGame {
         for (let y = GAME_CONFIG.BOARD_HEIGHT - 1; y >= 0; y--) {
             let isLineFull = true;
             
-            // Проверяем каждую ячейку в линии
             for (let x = 0; x < GAME_CONFIG.BOARD_WIDTH; x++) {
                 if (this.board[y][x] === 0) {
                     isLineFull = false;
@@ -622,18 +629,46 @@ class TetrisGame {
         }
 
         if (linesCleared > 0) {
-            // Анимируем и удаляем линии
+            // Начисляем очки за линии
+            const basePoints = {
+                1: GAME_CONFIG.POINTS.SINGLE_LINE,
+                2: GAME_CONFIG.POINTS.DOUBLE_LINE,
+                3: GAME_CONFIG.POINTS.TRIPLE_LINE,
+                4: GAME_CONFIG.POINTS.TETRIS
+            }[linesCleared] || 0;
+
+            this.score += basePoints * (this.level + 1);
+            this.lines += linesCleared;
+
+            // Проверяем достижение нового уровня
+            const newLevel = Math.floor(this.lines / 10);
+            if (newLevel > this.level && newLevel <= GAME_CONFIG.MAX_LEVEL) {
+                this.level = newLevel;
+                this.dropInterval = GAME_CONFIG.INITIAL_SPEED * Math.pow(GAME_CONFIG.SPEED_COEFFICIENT, this.level);
+                this.soundManager.play('levelUp');
+            }
+
+            // Обновляем статистику на экране
+            this.updateStats();
+
+            // Проверяем достижения
+            this.achievementsManager.checkAchievements({
+                score: this.score,
+                level: this.level,
+                lines: this.lines,
+                linesCleared
+            });
+
+            // Запускаем анимацию очистки линий
             this.animateClearLines(linesToAnimate).then(() => {
-                // Сортируем линии сверху вниз для правильного удаления
                 linesToAnimate.sort((a, b) => a - b);
                 
-                // Удаляем линии и добавляем новые сверху
                 linesToAnimate.forEach(y => {
                     this.board.splice(y, 1);
                     this.board.unshift(new Array(GAME_CONFIG.BOARD_WIDTH).fill(0));
                 });
 
-                this.updateScore(linesCleared);
+                this.draw();
             });
         }
 
@@ -672,43 +707,6 @@ class TetrisGame {
             };
 
             animate();
-        });
-    }
-
-    updateScore(linesCleared) {
-        // Начисление очков за линии
-        if (linesCleared > 0) {
-            switch (linesCleared) {
-                case 1:
-                    this.score += GAME_CONFIG.POINTS.SINGLE_LINE * (this.level + 1);
-                    break;
-                case 2:
-                    this.score += GAME_CONFIG.POINTS.DOUBLE_LINE * (this.level + 1);
-                    break;
-                case 3:
-                    this.score += GAME_CONFIG.POINTS.TRIPLE_LINE * (this.level + 1);
-                    break;
-                case 4:
-                    this.score += GAME_CONFIG.POINTS.TETRIS * (this.level + 1);
-                    break;
-            }
-
-            // Обновляем отображение очков
-            document.getElementById('score').textContent = this.score;
-            
-            // Обновляем линии и проверяем уровень
-            this.lines += linesCleared;
-            document.getElementById('lines').textContent = this.lines;
-            
-            // Проверяем достижение нового уровня
-            this.checkLevel();
-        }
-
-        this.achievementsManager.checkAchievements({
-            score: this.score,
-            level: this.level,
-            lines: this.lines,
-            linesCleared
         });
     }
 
@@ -777,7 +775,7 @@ class TetrisGame {
         if (this.collision(this.currentPiece)) {
             this.currentPiece.pos.y--;
             this.merge();
-            this.clearLines();
+            this.clearLines(); // clearLines теперь сам обновляет статистику
             this.resetPiece();
             this.pieceTrail = [];
             return false;
@@ -1072,15 +1070,26 @@ class TetrisGame {
     initMobileControls() {
         // Обработчики для мобильных кнопок
         const mobileButtons = {
-            mobileLeft: () => this.movePiece(-1),
-            mobileRight: () => this.movePiece(1),
+            mobileLeft: () => {
+                if (this.movePiece(-1)) {
+                    this.draw();
+                }
+            },
+            mobileRight: () => {
+                if (this.movePiece(1)) {
+                    this.draw();
+                }
+            },
             mobileDown: () => {
-                this.dropPiece();
-                this.speedDropCount++;
+                if (this.dropPiece()) {
+                    this.speedDropCount++;
+                    this.draw();
+                }
             },
             mobileRotate: () => {
                 if (this.rotate(this.currentPiece, 1)) {
                     this.rotationCount++;
+                    this.draw();
                 }
             }
         };
@@ -1104,7 +1113,9 @@ class TetrisGame {
                     button.addEventListener('touchstart', (e) => {
                         e.preventDefault();
                         if (!this.gameOver && !this.isPaused) {
-                            intervalId = setInterval(() => handler(), 50);
+                            intervalId = setInterval(() => {
+                                handler();
+                            }, 50);
                         }
                     });
 
@@ -1113,11 +1124,35 @@ class TetrisGame {
                             clearInterval(intervalId);
                             intervalId = null;
                             this.speedDropCount = 0;
+                            this.pieceTrail = [];
                         }
                     });
                 }
             }
         });
+    }
+
+    // Обновляем метод updateStats
+    updateStats() {
+        if (window.innerWidth <= 768) {
+            // Обновляем мобильную статистику
+            const scoreElement = document.getElementById('mobileScore');
+            const linesElement = document.getElementById('mobileLines');
+            const levelElement = document.getElementById('mobileLevel');
+
+            if (scoreElement) scoreElement.textContent = this.score;
+            if (linesElement) linesElement.textContent = this.lines;
+            if (levelElement) levelElement.textContent = this.level;
+        } else {
+            // Обновляем десктопную статистику
+            const scoreElement = document.getElementById('score');
+            const linesElement = document.getElementById('lines');
+            const levelElement = document.getElementById('level');
+
+            if (scoreElement) scoreElement.textContent = this.score;
+            if (linesElement) linesElement.textContent = this.lines;
+            if (levelElement) levelElement.textContent = this.level;
+        }
     }
 }
 
@@ -1138,7 +1173,6 @@ class LanguageManager {
     }
 }
 
-// Оставляем только русские переводы
 const TRANSLATIONS = {
     gameOver: "Игра окончена",
     pause: "Пауза",
@@ -1170,6 +1204,9 @@ function resizeCanvas() {
         const boardWidth = GAME_CONFIG.MOBILE.BOARD_WIDTH * cellSize;
         const boardHeight = GAME_CONFIG.MOBILE.BOARD_HEIGHT * cellSize;
 
+        // Обновляем BLOCK_SIZE для мобильной версии
+        GAME_CONFIG.BLOCK_SIZE = cellSize;
+        
         // Устанавливаем размеры canvas
         canvas.width = boardWidth;
         canvas.height = boardHeight;
@@ -1192,6 +1229,49 @@ function resizeCanvas() {
             const nextPieceSize = cellSize * 3;
             nextPieceCanvas.width = nextPieceSize;
             nextPieceCanvas.height = nextPieceSize;
+        }
+
+        // Стили для панели статистики в мобильной версии
+        const statsPanel = document.querySelector('.game-stats');
+        if (statsPanel) {
+            statsPanel.style.position = 'fixed'; // Меняем на fixed для надежного позиционирования
+            statsPanel.style.top = '10px';
+            statsPanel.style.left = GAME_CONFIG.MOBILE.OFFSET_X + 'px';
+            statsPanel.style.width = boardWidth + 'px';
+            statsPanel.style.display = 'flex';
+            statsPanel.style.justifyContent = 'space-around';
+            statsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            statsPanel.style.padding = '5px';
+            statsPanel.style.borderRadius = '5px';
+            statsPanel.style.zIndex = '1000';
+            statsPanel.style.visibility = 'visible';
+            statsPanel.style.pointerEvents = 'none'; // Чтобы не мешала касаниям
+        }
+
+        // Стили для элементов статистики в мобильной версии
+        const statElements = document.querySelectorAll('.game-stats .stat');
+        statElements.forEach(stat => {
+            stat.style.margin = '0 5px';
+            stat.style.fontSize = '14px';
+            stat.style.color = '#fff';
+            stat.style.display = 'flex';
+            stat.style.alignItems = 'center';
+            stat.style.visibility = 'visible';
+            stat.style.opacity = '1';
+            
+            // Убеждаемся, что значения видны
+            const valueElement = stat.querySelector('span:not([data-translate])');
+            if (valueElement) {
+                valueElement.style.marginLeft = '5px';
+                valueElement.style.color = '#fff';
+                valueElement.style.opacity = '1';
+            }
+        });
+
+        // Принудительно обновляем значения статистики
+        const game = document.querySelector('canvas').tetrisGame;
+        if (game) {
+            game.updateStats();
         }
     }
 }
