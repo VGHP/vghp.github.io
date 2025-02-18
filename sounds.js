@@ -27,11 +27,7 @@ class SoundManager {
     init() {
         // Загружаем все звуки
         this.soundFiles = {
-            rotate: 'neon-rotate.mp3',
-            drop: 'neon-drop.mp3',
-            clear: 'neon-clear.mp3',
             gameOver: '8bit-negative-beeps.mp3',
-            gameStart: 'neon-start.mp3'
         };
         
         // Создаем и загружаем звуки

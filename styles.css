@@ -1,5 +1,5 @@
 :root {
-    /* Основная тема сайта - тёмные градиентные тона */
+    /* Основная тема сайта */
     --primary-bg: linear-gradient(to bottom, #1a1a2e, #16213e);
     --secondary-bg: linear-gradient(to bottom, #1f2937, #111827);
     --panel-bg: rgba(31, 41, 55, 0.95);
@@ -8,7 +8,7 @@
     --text-secondary: #a0aec0;
     --border-color: rgba(255, 255, 255, 0.1);
     --shadow-color: rgba(0, 0, 0, 0.3);
-    --board-width: 14;  /* Используем наши размеры поля */
+    --board-width: 14; 
     --board-height: 20;
     --panel-height: 40px;
 }
@@ -547,19 +547,6 @@ input[type="range"]::-moz-range-thumb:hover {
     border-bottom: 1px solid var(--border-color);
 }
 
-/* Удалите или закомментируйте эти стили */
-/*
-@keyframes pulse {
-    0% { opacity: 0.15; }
-    50% { opacity: 0.4; }
-    100% { opacity: 0.15; }
-}
-
-.ghost-piece {
-    animation: pulse 1.5s ease-in-out infinite;
-}
-*/
-
 .control-button.disabled {
     background: linear-gradient(145deg, #888, #666);
     opacity: 0.7;
@@ -572,7 +559,7 @@ input[type="range"]::-moz-range-thumb:hover {
     padding: 5px;
 }
 
-/* Создаем новый контейнер для правой панели */
+/* Контейнер для правой панели */
 .game-info-right {
     display: flex;
     flex-direction: column;
@@ -582,10 +569,10 @@ input[type="range"]::-moz-range-thumb:hover {
     border-radius: 10px;
     box-shadow: 0 4px 6px var(--shadow-color);
     width: 300px;
-    margin: 0 0 0 0px; /* Отступ слева 20px уже есть */
+    margin: 0 0 0 0px; 
 }
 
-/* Обновляем стили для левой панели */
+/* Контейнер для левой панели */
 .game-info {
     display: flex;
     flex-direction: column;
@@ -595,10 +582,10 @@ input[type="range"]::-moz-range-thumb:hover {
     border-radius: 10px;
     box-shadow: 0 4px 6px var(--shadow-color);
     width: 300px;
-    margin: 0 20px 0 -20px; /* Добавляем отступ справа 20px */
+    margin: 0 20px 0 -15px; 
 }
 
-/* Обновляем стили для таблицы управления */
+/*Стили для таблицы управления */
 .controls-info {
     background: var(--panel-bg);
     padding: 15px;
@@ -766,12 +753,12 @@ h2, h3 {
 
     /* Заголовок "Следующая фигура" */
     .next-piece h3 {
-        color: white;
+        color:#d42e4a;
         background: transparent !important;
         text-align: center;
         margin: 0;
         padding: 0;
-        font-size: 7px;
+        font-size: 6px;
         line-height: 1.2;
         white-space: normal;
         word-break: break-word;
@@ -783,34 +770,11 @@ h2, h3 {
         margin-top: 2px;
         width: 45px;
         height: 45px;
-        border: 1px solid white;
+        border: 1px solid #d42e4a;
         border-radius: 0;
         box-sizing: border-box;
         background: rgba(12, 12, 12, 0.7);
     }
-
-    /* Стили для темы White с повышенной специфичностью */
-    .game-container.theme-retro .next-piece h3,
-    .theme-retro .game-container .next-piece h3 {
-        color: #000 !important;
-    }
-
-    .game-container.theme-retro #nextPiece,
-    .theme-retro .game-container #nextPiece {
-        border: 2px solid #444 !important;
-    }
-
-    /* Переопределение цвета для темы White */
-    .theme-nyancat #tetris + .next-piece h3 {
-        display: none;
-    }
-
-    /* Переопределение цвета для темы White */
-    .theme-nyancat #tetris + .next-piece h3 {
-        color: #000;
-    }
-
-    /* Classic и Neon используют базовый белый контур */
 
     /* Панель управления фигурами */
     .mobile-controls {
@@ -920,7 +884,7 @@ h2, h3 {
 
     /* Модальные окна */
     .modal {
-        z-index: 10000; /* Увеличиваем z-index модальных окон */
+        z-index: 10000; 
     }
 
     /* Общий контейнер для кнопок */
@@ -929,7 +893,7 @@ h2, h3 {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        z-index: 9999; /* Меньше, чем у модальных окон */
+        z-index: 9999; 
         width: calc(8 * 24.14px);
         display: flex;
         flex-direction: column;
@@ -937,5 +901,3 @@ h2, h3 {
         pointer-events: auto;
     }
 }
-
-/* Удаляем все дополнительные медиа-запросы для разных размеров экранов */

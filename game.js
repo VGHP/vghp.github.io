@@ -1,3 +1,5 @@
+let resizeTimeout; // Объявляем переменную resizeTimeout
+
 class TetrisGame {
     constructor() {
         this.canvas = document.getElementById('tetris');
@@ -601,25 +603,37 @@ class TetrisGame {
         let linesCleared = 0;
         let linesToAnimate = [];
 
-        outer: for (let y = this.board.length - 1; y >= 0; y--) {
-            for (let x = 0; x < this.board[y].length; x++) {
+        // Проверяем линии снизу вверх
+        for (let y = GAME_CONFIG.BOARD_HEIGHT - 1; y >= 0; y--) {
+            let isLineFull = true;
+            
+            // Проверяем каждую ячейку в линии
+            for (let x = 0; x < GAME_CONFIG.BOARD_WIDTH; x++) {
                 if (this.board[y][x] === 0) {
-                    continue outer;
+                    isLineFull = false;
+                    break;
                 }
             }
-            linesToAnimate.push(y);
-            linesCleared++;
+            
+            if (isLineFull) {
+                linesToAnimate.push(y);
+                linesCleared++;
+            }
         }
 
         if (linesCleared > 0) {
+            // Анимируем и удаляем линии
             this.animateClearLines(linesToAnimate).then(() => {
+                // Сортируем линии сверху вниз для правильного удаления
+                linesToAnimate.sort((a, b) => a - b);
+                
+                // Удаляем линии и добавляем новые сверху
                 linesToAnimate.forEach(y => {
                     this.board.splice(y, 1);
                     this.board.unshift(new Array(GAME_CONFIG.BOARD_WIDTH).fill(0));
                 });
 
                 this.updateScore(linesCleared);
-                this.soundManager.play('clear');
             });
         }
 
@@ -743,7 +757,6 @@ class TetrisGame {
             case 'KeyW':
             case 'KeyЦ':
                 if (this.rotate(this.currentPiece, 1)) {
-                    this.soundManager.play('rotate');
                     this.rotationCount++;
                 }
                 break;
@@ -764,7 +777,6 @@ class TetrisGame {
         if (this.collision(this.currentPiece)) {
             this.currentPiece.pos.y--;
             this.merge();
-            this.soundManager.play('drop');
             this.clearLines();
             this.resetPiece();
             this.pieceTrail = [];
@@ -821,8 +833,14 @@ class TetrisGame {
         
         this.soundManager.play('gameStart');
         
-        // Запускаем фоновую музыку для текущей темы
-        this.soundManager.playBackgroundMusic(this.themeManager.currentTheme);
+        // Останавливаем предыдущую фоновую музыку перед началом новой
+        this.soundManager.stopBackgroundMusic();
+        
+        // Небольшая задержка перед началом новой фоновой музыки
+        setTimeout(() => {
+            // Запускаем фоновую музыку для текущей темы
+            this.soundManager.playBackgroundMusic(this.themeManager.currentTheme);
+        }, 500);
         
         this.lastTime = performance.now();
         this.updateControlButtons();
@@ -1062,7 +1080,6 @@ class TetrisGame {
             },
             mobileRotate: () => {
                 if (this.rotate(this.currentPiece, 1)) {
-                    this.soundManager.play('rotate');
                     this.rotationCount++;
                 }
             }
