@@ -742,8 +742,8 @@ h2, h3 {
 
     .next-piece {
         position: absolute;
-        top: 97px;
-        right: 10px;
+        top: 103px;
+        right: 12px;
         z-index: 102;
         width: 45px;
         pointer-events: none;
